@@ -28,14 +28,13 @@ initial = np.array([[7,0,0,0,8,0,0,2,0],
                     [0,0,6,7,0,0,0,0,4],
                     [5,4,0,0,0,0,8,0,7]])
 
-rowcol_size = int(np.sqrt(solution.size))
-subgrid_size = int(np.sqrt(rowcol_size))
+rowcol_size = int(np.sqrt(initial.size))
 
 current = initial.copy()
 previous = np.zeros_like(current)
 loops = 0
 
-while not (current == solution).all():
+while (current == 0).any():
     # Check forever loop
     if (previous == current).all():
         print("Exiting infinite loop")
@@ -46,8 +45,8 @@ while not (current == solution).all():
     loops+=1
     
     # Get possible numbers for every cell
-    possible = np.empty(solution.size, dtype=object)
-    possible[...] = [[] for _ in range(solution.size)]
+    possible = np.empty(initial.size, dtype=object)
+    possible[...] = [[] for _ in range(initial.size)]
     possible = possible.reshape(rowcol_size,rowcol_size)
     
     for n in range(1,rowcol_size+1):
