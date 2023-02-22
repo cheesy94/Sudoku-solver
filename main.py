@@ -1,13 +1,7 @@
 import numpy as np
+from solver import solve
 
-def get_subgrid_matrix(matrix,i,j):
-    subgrid_size = int(np.sqrt(np.sqrt(matrix.size)))
-    
-    subgrid_i = int(i/subgrid_size)*subgrid_size
-    subgrid_j = int(j/subgrid_size)*subgrid_size
-    
-    return matrix[subgrid_i:subgrid_i+subgrid_size,subgrid_j:subgrid_j+subgrid_size]
-    
+# Read sudoku
 solution = np.array([[7,3,4,6,8,9,5,2,1],
                      [6,8,5,1,2,7,3,4,9],
                      [1,9,2,3,4,5,6,7,8],
@@ -28,74 +22,32 @@ initial = np.array([[7,0,0,0,8,0,0,2,0],
                     [0,0,6,7,0,0,0,0,4],
                     [5,4,0,0,0,0,8,0,7]])
 
-rowcol_size = int(np.sqrt(initial.size))
+# initial = np.array([[7,2,0,0,4,9,0,0,3],
+#                     [0,0,0,0,0,0,2,0,0],
+#                     [0,0,0,7,6,2,0,0,5],
+#                     [9,0,1,3,0,0,0,7,0],
+#                     [2,0,6,0,0,0,3,0,1],
+#                     [0,3,0,0,0,7,5,0,9],
+#                     [8,0,0,1,7,5,0,0,0],
+#                     [0,0,3,0,0,0,0,0,0],
+#                     [5,0,0,2,9,0,0,1,4]])
 
-current = initial.copy()
-previous = np.zeros_like(current)
-loops = 0
+# initial = np.array([[6,0,0,0,0,4,0,0,0],
+#                     [0,0,0,0,8,0,1,0,0],
+#                     [0,3,7,0,0,6,0,9,4],
+#                     [0,0,9,0,0,0,4,1,2],
+#                     [0,1,3,0,0,9,0,0,5],
+#                     [5,0,6,1,0,0,7,0,9],
+#                     [0,0,2,3,9,0,0,0,0],
+#                     [0,0,4,0,7,5,0,2,0],
+#                     [3,0,8,4,0,0,9,0,0]])
 
-while (current == 0).any():
-    # Check forever loop
-    if (previous == current).all():
-        print("Exiting infinite loop")
-        break
-    previous = current.copy()
-    
-    # Count loops
-    loops+=1
-    
-    # Get possible numbers for every cell
-    possible = np.empty(initial.size, dtype=object)
-    possible[...] = [[] for _ in range(initial.size)]
-    possible = possible.reshape(rowcol_size,rowcol_size)
-    
-    for n in range(1,rowcol_size+1):
-        for j in range(rowcol_size):
-            # Check column
-            if n in current[:,j]:
-                continue
-            
-            for i in range(rowcol_size):
-                # Check row
-                if n in current[i,:]:
-                    continue
-                
-                # Already solved
-                if current[i,j] != 0:
-                    continue
-                
-                # Check subgrid
-                if n in get_subgrid_matrix(current,i,j):
-                    continue
-                
-                possible[i,j].append(n)
-    
-    # Solve sure numbers
-    for j in range(rowcol_size):
-        for i in range(rowcol_size):
-            p = possible[i,j]
-            lenp = len(p)
-            
-            if lenp==0:
-                continue
-            
-            if lenp==1:
-                current[i,j] = p[0]
-                #print(i,j,current[i,j])
-                continue
-            
-            possible_neighbours = possible.copy()
-            possible_neighbours[i,j] = []
-            
-            subgrid_possible = get_subgrid_matrix(possible_neighbours,i,j)
-            subgrid_possible = np.unique(np.concatenate(subgrid_possible.flatten()))
-            #subgrid_possible_numbers,subgrid_possible_counts = np.unique(np.concatenate(subgrid_possible.flatten()),return_counts=True)
-            #subgrid_secure_numbers = subgrid_possible_numbers[subgrid_possible_counts==1]
-            
-            for pn in p:
-                if not pn in subgrid_possible:
-                    current[i,j] = pn
-                    #print(i,j,current[i,j])
- 
-print("Solved in",loops,"loops!")
-print(current)
+# Solve sudoku
+final,loops,possible = solve(initial)
+
+# Print result
+print("Result in",loops,"loops:")
+print(final)
+
+if (final == solution).all():
+    print("\nSolved!")
