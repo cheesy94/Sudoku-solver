@@ -16,3 +16,6 @@ def read_db(file,n):
                 break;
     
     return arr2mat(str2arr(ini)),arr2mat(str2arr(sol))
+
+def issolution(txt):
+    return not '0' in txt.split(",")
