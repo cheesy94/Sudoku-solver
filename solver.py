@@ -9,6 +9,8 @@ def get_subgrid_index(i,j,size):
     
     return subgrid_i,subgrid_j
 
+
+
 ## Get indexes of complementary small grids
 def get_complementary_subgrid_index(i,j,size):
     
@@ -23,6 +25,20 @@ def get_subgrid_matrix(matrix,i,j):
     si,sj = get_subgrid_index(i,j,subgrid_size)
     
     return matrix[si:si+subgrid_size,sj:sj+subgrid_size]
+
+## Get row neighbours
+#def get_complementary_row(matrix,i,j):
+    
+
+
+## Get col neighbours
+
+
+
+
+
+
+
 
 
 ## Get possible numbers for every cell
@@ -56,6 +72,58 @@ def get_possible_numbers(matrix):
     
     return possible
 
+## Delete possible number
+def del_possible_number(matrix,num):
+    np.vectorize(lambda x: x.remove(num) if(num in x) else None)(matrix)
+    return matrix
+
+## Delete possible number if row/col is assured by subgrid
+def filter_possible_numbers(matrix):
+    rowcol_size = matrix.shape[0]
+    size = int(np.sqrt(rowcol_size))
+    
+    for j in range(rowcol_size):
+        for i in range(rowcol_size):
+            p = matrix[i,j]
+            lenp = len(p)
+            if lenp<2:
+                continue
+            
+            # Pairs
+            
+            
+            si,sj = int(i%size),int(j%size)
+            
+            # Row
+            pos_row = matrix.copy()
+            pos_row_sg = get_subgrid_matrix(pos_row,i,j)
+            pos_row_sg[si,:].fill([])
+            pos_row_unique = np.unique(np.concatenate(pos_row[i,:].flatten()))
+            pos_row_sg_unique = np.unique(np.concatenate(pos_row_sg.flatten()))
+            
+            # Col
+            pos_col = matrix.copy()
+            pos_col_sg = get_subgrid_matrix(pos_col,i,j)
+            pos_col_sg[:,sj].fill([])
+            pos_col_unique = np.unique(np.concatenate(pos_col[:,j].flatten()))
+            pos_col_sg_unique = np.unique(np.concatenate(pos_col_sg.flatten()))
+            
+            for pn in p:
+                
+                # Row
+                if (not pn in pos_row_sg_unique) and (pn in pos_row_unique):
+                    for jj in range(rowcol_size):
+                        if pn in pos_row[i,jj]:
+                            matrix[i,jj].remove(pn)
+                    
+                # Col
+                if (not pn in pos_col_sg_unique) and (pn in pos_col_unique):
+                    for ii in range(rowcol_size):
+                        if pn in pos_col[ii,j]:
+                            matrix[ii,j].remove(pn)
+                            
+    return matrix
+
 
 ## Check if possible number prevents other subgrid from
 
@@ -84,6 +152,7 @@ def solve(initial):
         possible = get_possible_numbers(current)
         
         # Filter possible numbers
+        possible = filter_possible_numbers(possible)
         
         # Solve sure numbers
         for j in range(rowcol_size):
