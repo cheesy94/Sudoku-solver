@@ -16,8 +16,8 @@ def get_subgrid_mask(matrix,i,j):
     
     si,sj = get_subgrid_index(i,j,subgrid_size)
     
-    mask_i = np.zeros((grid_size,1),dtype=bool)
-    mask_j = np.zeros((grid_size,1),dtype=bool)
+    mask_i = np.zeros(grid_size,dtype=bool)
+    mask_j = np.zeros(grid_size,dtype=bool)
     mask_i[si:si+subgrid_size] = 1
     mask_j[sj:sj+subgrid_size] = 1
     
