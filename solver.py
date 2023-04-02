@@ -9,37 +9,32 @@ def get_subgrid_index(i,j,size):
     
     return subgrid_i,subgrid_j
 
-
-
-## Get indexes of complementary small grids
-def get_complementary_subgrid_index(i,j,size):
-    
-    si,sj = get_subgrid_index(i,j,size)
-    
-    return [(i*size,j*size) for i in range(size) for j in range(size) if bool(i==si) ^ bool(j==sj)]
-
-## Get small grid i,j
-def get_subgrid_matrix(matrix,i,j):
-    subgrid_size = int(np.sqrt(np.sqrt(matrix.size)))
+## Get small grid mask to which cell i,j belongs
+def get_subgrid_mask(matrix,i,j):
+    grid_size = int(np.sqrt(matrix.size))
+    subgrid_size = int(np.sqrt(grid_size))
     
     si,sj = get_subgrid_index(i,j,subgrid_size)
     
-    return matrix[si:si+subgrid_size,sj:sj+subgrid_size]
-
-## Get row neighbours
-#def get_complementary_row(matrix,i,j):
+    mask_i = np.zeros((grid_size,1),dtype=bool)
+    mask_j = np.zeros((grid_size,1),dtype=bool)
+    mask_i[si:si+subgrid_size] = 1
+    mask_j[sj:sj+subgrid_size] = 1
     
+    return mask_i,mask_j
 
+## Get small grid i,j
+def get_subgrid_matrix(matrix,i,j):
+    mask_i,mask_j = get_subgrid_mask(matrix,i,j)
+    
+    return matrix[np.ix_(mask_i,mask_j)]
 
-## Get col neighbours
-
-
-
-
-
-
-
-
+# ## Get indexes of complementary small grids
+# def get_complementary_subgrid_index(i,j,size):
+    
+#     si,sj = get_subgrid_index(i,j,size)
+    
+#     return [(i*size,j*size) for i in range(size) for j in range(size) if bool(i==si) ^ bool(j==sj)]
 
 ## Get possible numbers for every cell
 def get_possible_numbers(matrix):
@@ -77,10 +72,9 @@ def del_possible_number(matrix,num):
     np.vectorize(lambda x: x.remove(num) if(num in x) else None)(matrix)
     return matrix
 
-## Delete possible number if row/col is assured by subgrid
+## Delete possible number 
 def filter_possible_numbers(matrix):
     rowcol_size = matrix.shape[0]
-    size = int(np.sqrt(rowcol_size))
     
     for j in range(rowcol_size):
         for i in range(rowcol_size):
@@ -91,36 +85,34 @@ def filter_possible_numbers(matrix):
             
             # Pairs
             
-            
-            si,sj = int(i%size),int(j%size)
+            # Subgrid
+            mask_col,mask_row = get_subgrid_mask(matrix,i,j)
+            mask_col_neigh = mask_col.copy()
+            mask_col_neigh[i] = False
+            mask_row_neigh = mask_row.copy()
+            mask_row_neigh[j] = False
+            #mask = mask_col.reshape(rowcol_size,1) @ mask_row.reshape(1,rowcol_size)
             
             # Row
-            pos_row = matrix.copy()
-            pos_row_sg = get_subgrid_matrix(pos_row,i,j)
-            pos_row_sg[si,:].fill([])
-            pos_row_unique = np.unique(np.concatenate(pos_row[i,:].flatten()))
-            pos_row_sg_unique = np.unique(np.concatenate(pos_row_sg.flatten()))
+            pos_row = np.concatenate(matrix[i,:][~mask_row].flatten())
+            pos_row_sg = np.concatenate(matrix[np.ix_(mask_col_neigh,mask_row)].flatten())
             
             # Col
-            pos_col = matrix.copy()
-            pos_col_sg = get_subgrid_matrix(pos_col,i,j)
-            pos_col_sg[:,sj].fill([])
-            pos_col_unique = np.unique(np.concatenate(pos_col[:,j].flatten()))
-            pos_col_sg_unique = np.unique(np.concatenate(pos_col_sg.flatten()))
+            pos_col = np.concatenate(matrix[:,j][~mask_row].flatten())
+            pos_col_sg = np.concatenate(matrix[np.ix_(mask_col,mask_row_neigh)].flatten())
             
             for pn in p:
                 
-                # Row
-                if (not pn in pos_row_sg_unique) and (pn in pos_row_unique):
-                    for jj in range(rowcol_size):
-                        if pn in pos_row[i,jj]:
-                            matrix[i,jj].remove(pn)
+                # Row assured
+                if (not pn in pos_row_sg) and (pn in pos_row):
+                    del_possible_number(matrix[i,:][~mask_row],pn)
+                    # for jj in range(rowcol_size):
+                    #     if pn in pos_row[i,jj]:
+                    #         matrix[i,jj].remove(pn)
                     
-                # Col
-                if (not pn in pos_col_sg_unique) and (pn in pos_col_unique):
-                    for ii in range(rowcol_size):
-                        if pn in pos_col[ii,j]:
-                            matrix[ii,j].remove(pn)
+                # Col assured
+                if (not pn in pos_col_sg) and (pn in pos_col):
+                    del_possible_number(matrix[:,j][~mask_col],pn)
                             
     return matrix
 
