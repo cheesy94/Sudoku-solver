@@ -29,13 +29,6 @@ def get_subgrid_matrix(matrix,i,j):
     
     return matrix[np.ix_(mask_i,mask_j)]
 
-# ## Get indexes of complementary small grids
-# def get_complementary_subgrid_index(i,j,size):
-    
-#     si,sj = get_subgrid_index(i,j,size)
-    
-#     return [(i*size,j*size) for i in range(size) for j in range(size) if bool(i==si) ^ bool(j==sj)]
-
 ## Get possible numbers for every cell
 def get_possible_numbers(matrix):
     rowcol_size = int(np.sqrt(matrix.size))
@@ -128,13 +121,11 @@ def filter_possible_numbers(matrix):
                     
                     # Subgrid
                     if p in np.ndarray.tolist(matrix_neigh_sg.flatten()):
-                        print("Delete",pn,"in subgrid")
-                        #del_possible_number(np.extract([[0 if matrix_sg[i,j]==p else 1 for j in range(3)] for i in range(3)],matrix_sg),pn)
+                        sg_indexes = np.where([[0 if matrix[np.ix_(mask_col,mask_row)][ii,jj]==p else 1 for jj in range(3)] for ii in range(3)])
+                        del_possible_number(matrix_sg[sg_indexes],pn)
                             
     return matrix
 
-
-## Check if possible number prevents other subgrid from
 
 ## Solver
 def solve(initial):
