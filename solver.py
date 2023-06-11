@@ -1,21 +1,76 @@
 import numpy as np
 
 
-## Get small grid index to which cell i,j belongs
-def get_subgrid_index(i,j,size):
+## Solver
+def solve(initial):
     
-    subgrid_i = int(i/size)*size
-    subgrid_j = int(j/size)*size
+    initial = np.array(initial)
+    rowcol_size = int(np.sqrt(initial.size))
+
+    current = initial.copy()
+    previous = np.zeros_like(current)
+    loops = 0
     
-    return subgrid_i,subgrid_j
+    
+    while (current == 0).any():
+        # Check forever loop
+        if (previous == current).all(): # or not any(map(len,possible.flatten())):
+            print("Exiting infinite loop")
+            # DO SMTH
+            break
+        previous = current.copy()
+        
+        # Count loops
+        loops+=1
+        
+        # Get possible numbers for every cell                                   #!!! sacarlo del bucle
+        possible = get_possible_numbers(current)
+        
+        # Filter possible numbers
+        possible = filter_possible_numbers(possible)
+        
+        # Solve sure numbers
+        for j in range(rowcol_size):
+            for i in range(rowcol_size):
+                p = possible[i,j]
+                lenp = len(p)
+                
+                # Already solved
+                if current[i,j] != 0: #lenp==0:
+                    continue
+                
+                # Unique number in cell
+                if lenp==1:
+                    add_number(current,i,j,p[0],possible)
+                    continue
+                
+                # Neighbours
+                possible_neighbours = possible.copy()
+                possible_neighbours[i,j] = []
+                
+                for pn in p:
+                    
+                    # Unique position in row, col, subgrid
+                    possible_row = np.unique(np.concatenate(possible_neighbours[i,:].flatten())) # unique not needed
+                    possible_col = np.unique(np.concatenate(possible_neighbours[:,j].flatten()))
+                    possible_subgrid = np.unique(np.concatenate(get_subgrid_matrix(possible_neighbours,i,j).flatten()))
+                    if (not pn in possible_row) or (not pn in possible_col) or (not pn in possible_subgrid):
+                        add_number(current,i,j,pn,possible)
+                        break
+                
+    return current,loops,possible
+
+#############################################################################
 
 ## Get small grid mask to which cell i,j belongs
 def get_subgrid_mask(matrix,i,j):
     grid_size = int(np.sqrt(matrix.size))
     subgrid_size = int(np.sqrt(grid_size))
     
-    si,sj = get_subgrid_index(i,j,subgrid_size)
-    
+    #si,sj = get_subgrid_index(i,j,subgrid_size)
+    si = int(i/subgrid_size)*subgrid_size
+    sj = int(j/subgrid_size)*subgrid_size
+
     mask_i = np.zeros(grid_size,dtype=bool)
     mask_j = np.zeros(grid_size,dtype=bool)
     mask_i[si:si+subgrid_size] = 1
@@ -75,38 +130,36 @@ def add_number(matrix,i,j,num,possible):
     
     return matrix,possible
 
-## Delete possible number 
+## Filter possible numbers
 def filter_possible_numbers(matrix):
-    rowcol_size = matrix.shape[0]
+    grid_size = matrix.shape[0]
+    subgrid_size = int(np.sqrt(grid_size))
     
-    for j in range(rowcol_size):
-        for i in range(rowcol_size):
+    for j in range(grid_size):
+        for i in range(grid_size):
             p = matrix[i,j]
             lenp = len(p)
             
             if lenp==0:
                 continue
-            
-            # Subgrid
-            mask_col,mask_row = get_subgrid_mask(matrix,i,j)
-            
-            
+
             # Cell assured
             if lenp==1:
                 pn = p[0]
-                #del subgrid
-                del_possible_number(get_subgrid_matrix(matrix,i,j),pn)
                 del_possible_number(matrix[i,:],pn)
                 del_possible_number(matrix[:,j],pn)
+                del_possible_number(get_subgrid_matrix(matrix,i,j),pn)
+                
                 matrix[i,j] = [pn]
                 continue
             
             # Neighbours
+            mask_col,mask_row = get_subgrid_mask(matrix,i,j)
             mask_col_neigh = mask_col.copy()
             mask_col_neigh[i] = False
             mask_row_neigh = mask_row.copy()
             mask_row_neigh[j] = False
-            #mask = mask_col.reshape(rowcol_size,1) @ mask_row.reshape(1,rowcol_size)
+            #mask = mask_col.reshape(grid_size,1) @ mask_row.reshape(1,grid_size)
             
             # Row
             pos_row = np.concatenate(matrix[i,:][~mask_row].flatten())
@@ -138,7 +191,7 @@ def filter_possible_numbers(matrix):
                     matrix_neigh_sg = get_subgrid_matrix(matrix_neigh,i,j)
                     
                     if p in np.ndarray.tolist(matrix_neigh_sg.flatten()):
-                        sg_indexes = np.where([[0 if matrix_sg[ii,jj]==p else 1 for jj in range(3)] for ii in range(3)]) # !!! RANGES
+                        sg_indexes = np.where([[0 if matrix_sg[ii,jj]==p else 1 for jj in range(subgrid_size)] for ii in range(subgrid_size)])
                         del_possible_number(matrix_sg[sg_indexes],pn)
                         
                     # Row
@@ -158,69 +211,3 @@ def filter_possible_numbers(matrix):
                         del_possible_number(matrix_col[col_indexes],pn)
                             
     return matrix
-
-## Solver
-def solve(initial):
-    
-    rowcol_size = int(np.sqrt(initial.size))
-
-    current = initial.copy()
-    previous = np.zeros_like(current)
-    loops = 0 
-    
-    
-    while (current == 0).any():
-        # Check forever loop
-        if (previous == current).all(): # or not any(map(len,possible.flatten())):
-            print("Exiting infinite loop")
-            # DO SMTH
-            break
-        previous = current.copy()
-        
-        # Count loops
-        loops+=1
-        
-        # Get possible numbers for every cell                                   #!!! sacarlo del bucle
-        possible = get_possible_numbers(current)
-        
-        # Filter possible numbers
-        possible = filter_possible_numbers(possible)
-        
-        # Solve sure numbers
-        for j in range(rowcol_size):
-            for i in range(rowcol_size):
-                p = possible[i,j]
-                lenp = len(p)
-                
-                # Already solved
-                if current[i,j] != 0: #lenp==0:
-                    continue
-                
-                # Unique number in cell
-                if lenp==1:
-                    add_number(current,i,j,p[0],possible)
-                    continue
-                
-                # Neighbours
-                possible_neighbours = possible.copy()
-                possible_neighbours[i,j] = []
-                
-                for pn in p:
-                    
-                    # Unique position in row, col, subgrid
-                    possible_row = np.unique(np.concatenate(possible_neighbours[i,:].flatten()))
-                    possible_col = np.unique(np.concatenate(possible_neighbours[:,j].flatten()))
-                    possible_subgrid = np.unique(np.concatenate(get_subgrid_matrix(possible_neighbours,i,j).flatten()))
-                    if (not pn in possible_row) or (not pn in possible_col) or (not pn in possible_subgrid):
-                        add_number(current,i,j,pn,possible)
-                        break
-                        
-                    # Blocks number in other submatrix
-                    #current.copy()
-                    #possible_
-                    #for sij in get_complementary_subgrid_index(i,j,int(np.sqrt(rowcol_size))):
-                    #    current_subgrid = get_subgrid_matrix(possible,*sij)
-                        #if True:
-                        #    p.pop(ipn)
-                
-    return current,loops,possible
