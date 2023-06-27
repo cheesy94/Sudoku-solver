@@ -11,6 +11,8 @@ This project implements a simple algorithm to solve Sudoku puzzles of many sizes
 ## Requirements
 - Python 3.x
 - Numpy
+- Tkinter (GUI)
+- Functools (GUI)
 
 ## Usage
 
@@ -44,5 +46,9 @@ This project implements a simple algorithm to solve Sudoku puzzles of many sizes
     - [ ] Detect Sudoku bounds
     - [ ] Detect Sudoku grid
     - [ ] Number recognition
-- [ ] GUI (pygame lib)
+- [x] GUI
+    - [x] Draw Sudoku
+    - [x] Change numbers clicking
+    - [x] Config solve button
+    - [x] Show solution
 
