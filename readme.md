@@ -4,13 +4,15 @@ A Sudoku is a popular logic-based number puzzle consisting of a squared grid div
 
 A partially filled Sudoku puzzle is provided as the initial setup, and the goal is to completely fill the remaining empty cells using deduction and logical reasoning according to the rules.
 
-![Screenshot of Sudoku in initial stage.](/initial.png) ![Screenshot of Sudoku solved.](/solution.png)
+<img src="/initial.png" width="300" height="300" /> <img src="/solution.png" width="300" height="300" /> 
 
 This project implements a simple algorithm to solve Sudoku puzzles of many sizes and difficulties.
 
 ## Requirements
 - Python 3.x
 - Numpy
+- Tkinter (GUI)
+- Functools (GUI)
 
 ## Usage
 
@@ -39,10 +41,14 @@ This project implements a simple algorithm to solve Sudoku puzzles of many sizes
 ## Roadmap
 
 - [x] Read from text file
-- [] Read from image (openCV lib)
-	- [] Pool of images to test
-	- [] Detect Sudoku bounds
-	- [] Detect Sudoku grid
-	- [] Number recognition
-- [] GUI (pygame lib)
+- [ ] Read from image (openCV lib)
+    - [ ] Pool of images to test
+    - [ ] Detect Sudoku bounds
+    - [ ] Detect Sudoku grid
+    - [ ] Number recognition
+- [ ] GUI
+    - [x] Draw Sudoku
+    - [x] Change numbers clicking
+    - [ ] Config solve button
+    - [ ] Show solution
 

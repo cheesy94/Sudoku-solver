@@ -26,6 +26,17 @@ initial = [[6,0,0,0,0,4,0,0,0],
 
 
 ## Option 3
+# Introduce Sudoku manually GUI
+
+from GUI import draw
+
+size = 9
+draw(size)
+
+# initial = ...
+
+
+## Option 4
 # Read Sudoku from image
 
 # initial = ...
