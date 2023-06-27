@@ -46,9 +46,9 @@ This project implements a simple algorithm to solve Sudoku puzzles of many sizes
     - [ ] Detect Sudoku bounds
     - [ ] Detect Sudoku grid
     - [ ] Number recognition
-- [ ] GUI
+- [x] GUI
     - [x] Draw Sudoku
     - [x] Change numbers clicking
-    - [ ] Config solve button
-    - [ ] Show solution
+    - [x] Config solve button
+    - [x] Show solution
 
